@@ -61,7 +61,7 @@ class CellHelper
      */
     public static function isNonEmptyString($value)
     {
-        return (gettype($value) === 'string' && $value !== '');
+        return (gettype($value) === 'string' && $value !== '' && !is_numeric($value));
     }
 
     /**
@@ -74,7 +74,7 @@ class CellHelper
     public static function isNumeric($value)
     {
         $valueType = gettype($value);
-        return ($valueType === 'integer' || $valueType === 'double');
+        return ($valueType === 'integer' || $valueType === 'double' || is_numeric($value));
     }
 
     /**

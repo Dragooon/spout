@@ -14,6 +14,7 @@ class Style
     const DEFAULT_FONT_SIZE = 11;
     const DEFAULT_FONT_COLOR = Color::BLACK;
     const DEFAULT_FONT_NAME = 'Arial';
+    const DEFAULT_NUMBER_FORMAT = NumberFormat::FORMAT_GENERAL;
 
     /** @var int|null Style ID */
     protected $id = null;
@@ -60,6 +61,11 @@ class Style
     protected $shouldWrapText = false;
     /** @var bool Whether the wrap text property was set */
     protected $hasSetWrapText = false;
+
+    /** @var string Number Format name */
+    protected $numberFormat = self::DEFAULT_NUMBER_FORMAT;
+    /** @var bool Whether specific number format properties should be applied */
+    protected $shouldApplyNumberFormat = false;
 
     /**
      * @var Border
@@ -326,6 +332,35 @@ class Style
     }
 
     /**
+     * Sets the number format
+     * @param string $numberFormat See @NumberFormat
+     * @return Style
+     */
+    public function setNumberFormat($numberFormat)
+    {
+        $this->numberFormat = $numberFormat;
+        $this->shouldApplyNumberFormat = true;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNumberFormat()
+    {
+        return $this->numberFormat;
+    }
+
+    /**
+     *
+     * @return bool Whether the number format should be applied
+     */
+    public function shouldApplyNumberFormat()
+    {
+        return $this->shouldApplyNumberFormat;
+    }
+
+    /**
      * Serializes the style for future comparison with other styles.
      * The ID is excluded from the comparison, as we only care about
      * actual style properties.
@@ -421,6 +456,9 @@ class Style
         }
         if (!$this->hasSetBackgroundColor && $baseStyle->shouldApplyBackgroundColor()) {
             $styleToUpdate->setBackgroundColor($baseStyle->getBackgroundColor());
+        }
+        if (!$this->shouldApplyNumberFormat && $baseStyle->shouldApplyNumberFormat()) {
+            $styleToUpdate->setNumberFormat($baseStyle->getNumberFormat());
         }
     }
 }

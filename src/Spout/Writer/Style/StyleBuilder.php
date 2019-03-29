@@ -147,6 +147,15 @@ class StyleBuilder
     }
 
     /**
+     * @return StyleBuilder
+     */
+    public function setNumberFormat($numberFormat)
+    {
+        $this->style->setNumberFormat($numberFormat);
+        return $this;
+    }
+
+    /**
      * Returns the configured style. The style is cached and can be reused.
      *
      * @api

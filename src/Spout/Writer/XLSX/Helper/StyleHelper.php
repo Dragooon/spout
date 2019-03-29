@@ -5,6 +5,7 @@ namespace Box\Spout\Writer\XLSX\Helper;
 use Box\Spout\Writer\Common\Helper\AbstractStyleHelper;
 use Box\Spout\Writer\Style\Color;
 use Box\Spout\Writer\Style\Style;
+use http\Params;
 
 /**
  * Class StyleHelper
@@ -42,6 +43,10 @@ class StyleHelper extends AbstractStyleHelper
      */
     protected $styleIdToBorderMappingTable = [];
 
+    protected $registeredNumberFormats = [];
+    protected $styleIdToNumberFormattingTable = [];
+    protected $numberFormatIndex = 165;
+
     /**
      * XLSX specific operations on the registered styles
      *
@@ -53,6 +58,7 @@ class StyleHelper extends AbstractStyleHelper
         $registeredStyle = parent::registerStyle($style);
         $this->registerFill($registeredStyle);
         $this->registerBorder($registeredStyle);
+        $this->registerNumberFormat($registeredStyle);
         return $registeredStyle;
     }
 
@@ -119,6 +125,28 @@ class StyleHelper extends AbstractStyleHelper
         }
     }
 
+    /**
+     * @param Style $style
+     */
+    protected function registerNumberFormat($style)
+    {
+        $styleId = $style->getId();
+
+        if ($style->shouldApplyNumberFormat()) {
+            $numberFormat = $style->getNumberFormat();
+
+            if (isset($this->registeredNumberFormats[$numberFormat])) {
+                $registeredStyleId = $this->registeredNumberFormats[$numberFormat];
+                $registeredNumberFormatId = $this->styleIdToNumberFormattingTable[$registeredStyleId];
+                $this->styleIdToNumberFormattingTable[$styleId] = $registeredNumberFormatId;
+            } else {
+                $this->registeredNumberFormats[$numberFormat] = $styleId;
+                $this->styleIdToNumberFormattingTable[$styleId] = $this->numberFormatIndex++;
+            }
+        } else {
+            $this->styleIdToNumberFormattingTable[$styleId] = 0;
+        }
+    }
 
     /**
      * For empty cells, we can specify a style or not. If no style are specified,
@@ -134,8 +162,9 @@ class StyleHelper extends AbstractStyleHelper
     {
         $hasStyleCustomFill = (isset($this->styleIdToFillMappingTable[$styleId]) && $this->styleIdToFillMappingTable[$styleId] !== 0);
         $hasStyleCustomBorders = (isset($this->styleIdToBorderMappingTable[$styleId]) && $this->styleIdToBorderMappingTable[$styleId] !== 0);
+        $hasStyleNumberFormat = isset($this->styleIdToNumberFormattingTable[$styleId]) && $this->styleIdToNumberFormattingTable[$styleId] !== 0;
 
-        return ($hasStyleCustomFill || $hasStyleCustomBorders);
+        return ($hasStyleCustomFill || $hasStyleCustomBorders || $hasStyleNumberFormat);
     }
 
 
@@ -151,6 +180,7 @@ class StyleHelper extends AbstractStyleHelper
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 EOD;
 
+        $content .= $this->getNumberFormatContent();
         $content .= $this->getFontsSectionContent();
         $content .= $this->getFillsSectionContent();
         $content .= $this->getBordersSectionContent();
@@ -161,6 +191,23 @@ EOD;
         $content .= <<<EOD
 </styleSheet>
 EOD;
+
+        return $content;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getNumberFormatContent()
+    {
+        $content = '<numFmts count="' . count($this->registeredNumberFormats) . '">';
+        $i = 165;
+        foreach ($this->registeredNumberFormats as $k => $styleId) {
+            /** @var Style $style */
+            $style = $this->styleIdToStyleMappingTable[$styleId];
+            $content .= '<numFmt numFmtId="' . $i++ . '" formatCode="' . $style->getNumberFormat() . '"/>';
+        }
+        $content .= '</numFmts>';
 
         return $content;
     }
@@ -305,11 +352,16 @@ EOD;
             $styleId = $style->getId();
             $fillId = $this->styleIdToFillMappingTable[$styleId];
             $borderId = $this->styleIdToBorderMappingTable[$styleId];
+            $numberFormatId = $this->styleIdToNumberFormattingTable[$styleId];
 
-            $content .= '<xf numFmtId="0" fontId="' . $styleId . '" fillId="' . $fillId . '" borderId="' . $borderId . '" xfId="0"';
+            $content .= '<xf numFmtId="' . $numberFormatId . '" fontId="' . $styleId . '" fillId="' . $fillId . '" borderId="' . $borderId . '" xfId="0"';
 
             if ($style->shouldApplyFont()) {
                 $content .= ' applyFont="1"';
+            }
+
+            if ($style->shouldApplyNumberFormat()) {
+                $content .= ' applyNumberFormat="1"';
             }
 
             $content .= sprintf(' applyBorder="%d"', $style->shouldApplyBorder() ? 1 : 0);
