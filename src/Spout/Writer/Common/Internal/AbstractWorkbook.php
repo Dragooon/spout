@@ -153,8 +153,8 @@ abstract class AbstractWorkbook implements WorkbookInterface
         $hasReachedMaxRows = $this->hasCurrentWorkseetReachedMaxRows();
         $styleHelper = $this->getStyleHelper();
 
-        foreach ($cellStyles as $k => $style) {
-            $cellStyles[$k] = $styleHelper->registerStyle($style);
+        foreach ($cellStyles as $k => $cellStyle) {
+            $cellStyles[$k] = $styleHelper->registerStyle($cellStyle);
         }
 
         // if we reached the maximum number of rows for the current sheet...

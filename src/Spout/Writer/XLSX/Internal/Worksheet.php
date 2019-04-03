@@ -187,8 +187,8 @@ EOD;
         $rowXML = '<row r="' . $rowIndex . '" spans="1:' . $numCells . '">';
 
         foreach($dataRow as $index => $cellValue) {
-            $style = isset($cellStyles[$index]) ? $cellStyles[$index] : $style;
-            $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cellValue, $style->getId());
+            $cellStyle = isset($cellStyles[$index]) ? $cellStyles[$index] : $style;
+            $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cellValue, $cellStyle->getId());
             $cellNumber++;
         }
 
