@@ -25,11 +25,12 @@ interface WorksheetInterface
      * @param array $dataRow Array containing data to be written.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param \Box\Spout\Writer\Style\Style $style Style to be applied to the row. NULL means use default style.
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If the data cannot be written
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException If a cell value's type is not supported
      */
-    public function addRow($dataRow, $style);
+    public function addRow($dataRow, $style, $cellStyles = []);
 
     /**
      * Closes the worksheet

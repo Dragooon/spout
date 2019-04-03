@@ -95,14 +95,15 @@ class Writer extends AbstractMultiSheetsWriter
      * @param array $dataRow Array containing data to be written.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param \Box\Spout\Writer\Style\Style $style Style to be applied to the row.
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException If the book is not created yet
      * @throws \Box\Spout\Common\Exception\IOException If unable to write data
      */
-    protected function addRowToWriter(array $dataRow, $style)
+    protected function addRowToWriter(array $dataRow, $style, $cellStyles = [])
     {
         $this->throwIfBookIsNotAvailable();
-        $this->book->addRowToCurrentWorksheet($dataRow, $style);
+        $this->book->addRowToCurrentWorksheet($dataRow, $style, $cellStyles);
     }
 
     /**

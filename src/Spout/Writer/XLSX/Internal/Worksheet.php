@@ -139,14 +139,15 @@ EOD;
      * @param array $dataRow Array containing data to be written. Cannot be empty.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param \Box\Spout\Writer\Style\Style $style Style to be applied to the row. NULL means use default style.
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If the data cannot be written
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException If a cell value's type is not supported
      */
-    public function addRow($dataRow, $style)
+    public function addRow($dataRow, $style, $cellStyles = [])
     {
         if (!$this->isEmptyRow($dataRow)) {
-            $this->addNonEmptyRow($dataRow, $style);
+            $this->addNonEmptyRow($dataRow, $style, $cellStyles);
         }
 
         $this->lastWrittenRowIndex++;
@@ -172,11 +173,12 @@ EOD;
      * @param array $dataRow Array containing data to be written. Cannot be empty.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param \Box\Spout\Writer\Style\Style $style Style to be applied to the row. NULL means use default style.
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If the data cannot be written
      * @throws \Box\Spout\Common\Exception\InvalidArgumentException If a cell value's type is not supported
      */
-    protected function addNonEmptyRow($dataRow, $style)
+    protected function addNonEmptyRow($dataRow, $style, $cellStyles = [])
     {
         $cellNumber = 0;
         $rowIndex = $this->lastWrittenRowIndex + 1;
@@ -184,7 +186,8 @@ EOD;
 
         $rowXML = '<row r="' . $rowIndex . '" spans="1:' . $numCells . '">';
 
-        foreach($dataRow as $cellValue) {
+        foreach($dataRow as $index => $cellValue) {
+            $style = isset($cellStyles[$index]) ? $cellStyles[$index] : $style;
             $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cellValue, $style->getId());
             $cellNumber++;
         }

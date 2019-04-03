@@ -142,15 +142,20 @@ abstract class AbstractWorkbook implements WorkbookInterface
      * @param array $dataRow Array containing data to be written. Cannot be empty.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param \Box\Spout\Writer\Style\Style $style Style to be applied to the row.
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If trying to create a new sheet and unable to open the sheet for writing
      * @throws \Box\Spout\Writer\Exception\WriterException If unable to write data
      */
-    public function addRowToCurrentWorksheet($dataRow, $style)
+    public function addRowToCurrentWorksheet($dataRow, $style, $cellStyles = [])
     {
         $currentWorksheet = $this->getCurrentWorksheet();
         $hasReachedMaxRows = $this->hasCurrentWorkseetReachedMaxRows();
         $styleHelper = $this->getStyleHelper();
+
+        foreach ($cellStyles as $k => $style) {
+            $cellStyles[$k] = $styleHelper->registerStyle($style);
+        }
 
         // if we reached the maximum number of rows for the current sheet...
         if ($hasReachedMaxRows) {
@@ -160,14 +165,14 @@ abstract class AbstractWorkbook implements WorkbookInterface
 
                 $updatedStyle = $styleHelper->applyExtraStylesIfNeeded($style, $dataRow);
                 $registeredStyle = $styleHelper->registerStyle($updatedStyle);
-                $currentWorksheet->addRow($dataRow, $registeredStyle);
+                $currentWorksheet->addRow($dataRow, $registeredStyle, $cellStyles);
             } else {
                 // otherwise, do nothing as the data won't be read anyways
             }
         } else {
             $updatedStyle = $styleHelper->applyExtraStylesIfNeeded($style, $dataRow);
             $registeredStyle = $styleHelper->registerStyle($updatedStyle);
-            $currentWorksheet->addRow($dataRow, $registeredStyle);
+            $currentWorksheet->addRow($dataRow, $registeredStyle, $cellStyles);
         }
     }
 

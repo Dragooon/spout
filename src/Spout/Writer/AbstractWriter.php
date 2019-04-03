@@ -8,6 +8,7 @@ use Box\Spout\Common\Exception\SpoutException;
 use Box\Spout\Common\Helper\FileSystemHelper;
 use Box\Spout\Writer\Exception\WriterAlreadyOpenedException;
 use Box\Spout\Writer\Exception\WriterNotOpenedException;
+use Box\Spout\Writer\Style\Style;
 use Box\Spout\Writer\Style\StyleBuilder;
 
 /**
@@ -53,9 +54,10 @@ abstract class AbstractWriter implements WriterInterface
      * @param  array $dataRow Array containing data to be streamed.
      *          Example $dataRow = ['data1', 1234, null, '', 'data5'];
      * @param Style\Style $style Style to be applied to the written row
+     * @param \Box\Spout\Writer\Style\Style[] $cellStyles Style to be applied to to a specific cell (0 based index)
      * @return void
      */
-    abstract protected function addRowToWriter(array $dataRow, $style);
+    abstract protected function addRowToWriter(array $dataRow, $style, $cellStyles = []);
 
     /**
      * Closes the streamer, preventing any additional writing.
@@ -197,19 +199,20 @@ abstract class AbstractWriter implements WriterInterface
      * @param  array $dataRow Array containing data to be streamed.
      *                        If empty, no data is added (i.e. not even as a blank row)
      *                        Example: $dataRow = ['data1', 1234, null, '', 'data5', false];
+     * @param Style[] $cellStyles
      * @api
      * @return AbstractWriter
      * @throws \Box\Spout\Writer\Exception\WriterNotOpenedException If this function is called before opening the writer
      * @throws \Box\Spout\Common\Exception\IOException If unable to write data
      * @throws \Box\Spout\Common\Exception\SpoutException If anything else goes wrong while writing data
      */
-    public function addRow(array $dataRow)
+    public function addRow(array $dataRow, $cellStyles = [])
     {
         if ($this->isWriterOpened) {
             // empty $dataRow should not add an empty line
             if (!empty($dataRow)) {
                 try {
-                    $this->addRowToWriter($dataRow, $this->rowStyle);
+                    $this->addRowToWriter($dataRow, $this->rowStyle, $cellStyles);
                 } catch (SpoutException $e) {
                     // if an exception occurs while writing data,
                     // close the writer and remove all files created so far.
